@@ -10,11 +10,14 @@ import net.minecraftforge.registries.RegistryObject;
 public final class MFACreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MFAutomata.MODID);
 
-    public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> MFAItems.EXAMPLE_ITEM.get().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(MFAItems.EXAMPLE_ITEM.get());
-                output.accept(MFABlocks.EXAMPLE_BLOCK.get());
-            }).build());
+    static {
+        CREATIVE_MODE_TABS.register("mfa_tab", () -> CreativeModeTab.builder()
+                .withTabsBefore(CreativeModeTabs.COMBAT)
+                .icon(() -> MFAItems.EXAMPLE_ITEM.get().getDefaultInstance())
+                .displayItems((parameters, output) -> {
+                    output.accept(MFAItems.EXAMPLE_ITEM.get());
+                    output.accept(MFABlocks.MILKING_MACHINE.get());
+                    output.accept(MFABlocks.EXAMPLE_BLOCK.get());
+                }).build());
+    }
 }

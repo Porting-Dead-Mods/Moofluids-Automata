@@ -9,10 +9,6 @@ import net.minecraftforge.registries.RegistryObject;
 
 public final class MFAItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MFAutomata.MODID);
-    public static final RegistryObject<Item> EXAMPLE_ITEM = registerItem("example_item", new Item(new Item.Properties().food(new FoodProperties.Builder()
+    public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
-
-    static RegistryObject<Item> registerItem(String name, Item item) {
-        return ITEMS.register(name, () -> item);
-    }
 }
