@@ -18,7 +18,7 @@ public abstract class MFAAbstractContainerScreen<T extends MFAAbstractContainerM
     public final void initComponents(GuiComponent... components) {
         this.components = components;
         for (GuiComponent component : this.components) {
-            component.initScreen(this);
+            component.init(this);
         }
     }
 

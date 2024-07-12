@@ -1,6 +1,7 @@
 package com.portingdeadmods.mf_automata.registries.screens;
 
 import com.portingdeadmods.mf_automata.api.screens.MFAAbstractContainerMenu;
+import com.portingdeadmods.mf_automata.api.screens.slots.ChargingSlot;
 import com.portingdeadmods.mf_automata.registries.MFAMenus;
 import com.portingdeadmods.mf_automata.registries.blockentities.MilkingMachineBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,9 +12,12 @@ public class MilkingMachineMenu extends MFAAbstractContainerMenu<MilkingMachineB
         super(MFAMenus.MILKING_MACHINE_MENU.get(), containerId, inv, blockEntity);
         addPlayerInventory(inv, 83 + 17);
         addPlayerHotbar(inv, 141 + 17);
+        addSlot(new ChargingSlot(blockEntity.getItemHandler().get(), 0, ChargingSlot.ChargeMode.DECHARGE, 20, 20));
     }
 
     public MilkingMachineMenu(int containerId, Inventory inv, FriendlyByteBuf byteBuf) {
         this(containerId, inv, (MilkingMachineBlockEntity) inv.player.level().getBlockEntity(byteBuf.readBlockPos()));
     }
+
+
 }

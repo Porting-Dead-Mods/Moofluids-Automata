@@ -3,6 +3,7 @@ package com.portingdeadmods.mf_automata.registries.screens;
 import com.portingdeadmods.mf_automata.MFAutomata;
 import com.portingdeadmods.mf_automata.api.screens.MFAAbstractContainerScreen;
 import com.portingdeadmods.mf_automata.registries.screens.components.EnergyGuiComponent;
+import com.portingdeadmods.mf_automata.registries.screens.components.FluidTankGuiComponent;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -18,10 +19,11 @@ public class MilkingMachineScreen extends MFAAbstractContainerScreen<MilkingMach
     @Override
     protected void init() {
         this.imageHeight = 181;
-        this.inventoryLabelY += 17;
+        this.inventoryLabelY = imageHeight - 94;
         super.init();
         initComponents(
-                new EnergyGuiComponent(new Vector2i(this.leftPos + 10, this.topPos + 16), true)
+                new EnergyGuiComponent(new Vector2i(this.leftPos + 10, this.topPos + 16), true),
+                new FluidTankGuiComponent(new Vector2i(this.width / 2, this.topPos + 32), FluidTankGuiComponent.TankVariants.SMALL)
         );
     }
 

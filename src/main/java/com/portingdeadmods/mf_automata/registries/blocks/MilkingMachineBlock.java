@@ -38,7 +38,6 @@ public class MilkingMachineBlock extends ContainerBlock {
 
         BlockEntity blockEntity = p_60504_.getBlockEntity(p_60505_);
         if (blockEntity instanceof MilkingMachineBlockEntity milkingMachineBlockEntity) {
-            milkingMachineBlockEntity.getEnergyHandler().get().receiveEnergy(8000, false);
             NetworkHooks.openScreen((ServerPlayer) p_60506_, milkingMachineBlockEntity, p_60505_);
         }
         return InteractionResult.SUCCESS;

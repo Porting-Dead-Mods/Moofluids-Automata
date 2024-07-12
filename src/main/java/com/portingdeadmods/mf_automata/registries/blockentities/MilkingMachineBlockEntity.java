@@ -2,6 +2,7 @@ package com.portingdeadmods.mf_automata.registries.blockentities;
 
 import com.mojang.datafixers.util.Pair;
 import com.portingdeadmods.mf_automata.MFAConfig;
+import com.portingdeadmods.mf_automata.MFAutomata;
 import com.portingdeadmods.mf_automata.api.blockentities.ContainerBlockEntity;
 import com.portingdeadmods.mf_automata.api.blocks.ContainerBlock;
 import com.portingdeadmods.mf_automata.registries.MFABlockEntities;
@@ -34,17 +35,21 @@ public class MilkingMachineBlockEntity extends ContainerBlockEntity implements M
         super(MFABlockEntities.MILKING_MACHINE.get(), p_155229_, p_155230_);
         addFluidTank(8000, 3, fluidStack -> !MFConfig.fluidBlacklist.contains(Utils.idFromFluid(fluidStack.getFluid())));
         addEnergyStorage(8000, 128, IOAction.INSERT);
+        addItemHandler(1);
     }
 
     @Override
     public void tick() {
         if (level instanceof ServerLevel serverLevel) {
+            super.tick();
             BlockState state = level.getBlockState(worldPosition);
             Direction facing = state.getValue(ContainerBlock.FACING);
             BlockPos offset = worldPosition.offset(facing.getOpposite().getNormal());
             List<FluidCow> fluidCows = serverLevel.getEntities(null, new AABB(offset)).stream()
                     .filter(entity -> entity instanceof FluidCow)
                     .map(entity -> (FluidCow) entity).toList();
+
+            getEnergyHandler().get().receiveEnergy(1, false);
 
             if (fluidCows.isEmpty())
                 return;

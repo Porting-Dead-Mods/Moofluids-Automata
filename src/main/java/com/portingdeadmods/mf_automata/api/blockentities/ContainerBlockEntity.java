@@ -2,6 +2,7 @@ package com.portingdeadmods.mf_automata.api.blockentities;
 
 import com.mojang.datafixers.util.Pair;
 import com.portingdeadmods.mf_automata.api.blocks.ContainerBlock;
+import com.portingdeadmods.mf_automata.api.screens.slots.ChargingSlot;
 import com.portingdeadmods.mf_automata.api.utils.SidedFluidHandler;
 import com.portingdeadmods.mf_automata.api.utils.SidedItemHandler;
 import com.portingdeadmods.mf_automata.api.utils.ValidationFunctions;
@@ -14,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class ContainerBlockEntity extends BlockEntity {
+    private @Nullable ChargingSlot batterySlot;
     private @Nullable ItemStackHandler itemHandler;
     private @Nullable FluidTank fluidTank;
     private @Nullable EnergyStorage energyStorage;
@@ -58,6 +61,17 @@ public abstract class ContainerBlockEntity extends BlockEntity {
      * NOTE: For this to run, override the enableTicking in your blockentity's block class
      */
     public void tick() {
+        if (this.batterySlot != null)
+            tickBatterySlot();
+    }
+
+    private void tickBatterySlot() {
+        ItemStack itemStack = this.batterySlot.getItem();
+        itemStack.getCapability(ForgeCapabilities.ENERGY).ifPresent(energyStorage -> {
+            switch (this.batterySlot.getMode()) {
+                case CHARGE -> energyStorage.receiveEnergy();
+            }
+        });
     }
 
     public Optional<ItemStackHandler> getItemHandler() {
@@ -178,12 +192,15 @@ public abstract class ContainerBlockEntity extends BlockEntity {
     protected void onFluidsChanged() {
     }
 
+    protected void onEnergyChanged() {
+    }
+
     protected final void addEnergyStorage(int capacity) {
-        this.energyStorage = new EnergyStorage(capacity);
+        addEnergyStorage(capacity, capacity, capacity);
     }
 
     protected final void addEnergyStorage(int capacity, int maxTransfer) {
-        this.energyStorage = new EnergyStorage(capacity, maxTransfer);
+        addEnergyStorage(capacity, maxTransfer, maxTransfer);
     }
 
     protected final void addEnergyStorage(int capacity, int maxTransfer, IOAction action) {
@@ -193,11 +210,31 @@ public abstract class ContainerBlockEntity extends BlockEntity {
             case INSERT -> insertAmount = maxTransfer;
             case EXTRACT -> extractAmount = maxTransfer;
         }
-        this.energyStorage = new EnergyStorage(capacity, insertAmount, extractAmount);
+        addEnergyStorage(capacity, insertAmount, extractAmount);
     }
 
     protected final void addEnergyStorage(int capacity, int maxInput, int maxOutput) {
-        this.energyStorage = new EnergyStorage(capacity, maxInput, maxOutput);
+        this.energyStorage = new EnergyStorage(capacity, maxInput, maxOutput) {
+            @Override
+            public int receiveEnergy(int maxReceive, boolean simulate) {
+                if (!simulate) {
+                    setChanged();
+                    onEnergyChanged();
+                    update();
+                }
+                return super.receiveEnergy(maxReceive, simulate);
+            }
+
+            @Override
+            public int extractEnergy(int maxExtract, boolean simulate) {
+                if (!simulate) {
+                    setChanged();
+                    onEnergyChanged();
+                    update();
+                }
+                return super.extractEnergy(maxExtract, simulate);
+            }
+        };
     }
 
     @Override
@@ -240,10 +277,13 @@ public abstract class ContainerBlockEntity extends BlockEntity {
                 }
 
                 return switch (localDir) {
-                    case NORTH -> LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getOpposite()))).cast();
-                    case EAST -> LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getClockWise()))).cast();
+                    case NORTH ->
+                            LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getOpposite()))).cast();
+                    case EAST ->
+                            LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getClockWise()))).cast();
                     case SOUTH -> LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side))).cast();
-                    case WEST -> LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getCounterClockWise()))).cast();
+                    case WEST ->
+                            LazyOptional.of(() -> new SidedItemHandler(itemHandler, ioPorts.get(side.getCounterClockWise()))).cast();
                     default -> LazyOptional.empty();
                 };
             }
@@ -261,10 +301,13 @@ public abstract class ContainerBlockEntity extends BlockEntity {
                 }
 
                 return switch (localDir) {
-                    case NORTH -> LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getOpposite()))).cast();
-                    case EAST -> LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getClockWise()))).cast();
+                    case NORTH ->
+                            LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getOpposite()))).cast();
+                    case EAST ->
+                            LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getClockWise()))).cast();
                     case SOUTH -> LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side))).cast();
-                    case WEST -> LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getCounterClockWise()))).cast();
+                    case WEST ->
+                            LazyOptional.of(() -> new SidedFluidHandler(fluidTank, ioPorts.get(side.getCounterClockWise()))).cast();
                     default -> LazyOptional.empty();
                 };
             }
@@ -295,6 +338,22 @@ public abstract class ContainerBlockEntity extends BlockEntity {
 
     public int getEnergyCapacity() {
         return this.energyStorage.getMaxEnergyStored();
+    }
+
+    public FluidStack getFluid() {
+        return getFluidHandler().get().getFluid();
+    }
+
+    public int getFluidStored() {
+        return getFluidHandler().get().getFluidAmount();
+    }
+
+    public int getFluidCapacity() {
+        return getFluidHandler().get().getCapacity();
+    }
+
+    public void addBatterySlot(ChargingSlot chargingSlot) {
+        this.batterySlot = chargingSlot;
     }
 
     public enum IOAction {

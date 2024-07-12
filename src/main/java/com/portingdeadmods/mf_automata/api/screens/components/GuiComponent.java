@@ -15,8 +15,12 @@ public abstract class GuiComponent {
         this.position = position;
     }
 
-    public void initScreen(@NotNull MFAAbstractContainerScreen<?> screen) {
+    public void init(@NotNull MFAAbstractContainerScreen<?> screen) {
         this.screen = screen;
+        onInit();
+    }
+
+    protected void onInit() {
     }
 
     public final boolean isShiftKeyDown() {

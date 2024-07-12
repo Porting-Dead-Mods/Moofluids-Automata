@@ -1,16 +1,13 @@
 package com.portingdeadmods.mf_automata.api.screens;
 
 import com.portingdeadmods.mf_automata.api.blockentities.ContainerBlockEntity;
-import net.minecraft.core.BlockPos;
+import com.portingdeadmods.mf_automata.api.screens.slots.ChargingSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +24,14 @@ public abstract class MFAAbstractContainerMenu<T extends ContainerBlockEntity> e
 
     public @Nullable T getBlockEntity() {
         return blockEntity;
+    }
+
+    @Override
+    protected Slot addSlot(Slot p_38898_) {
+        if (p_38898_ instanceof ChargingSlot chargingSlot) {
+            blockEntity.addBatterySlot(chargingSlot);
+        }
+        return super.addSlot(p_38898_);
     }
 
     // Quick move code is taken from COFHCore.
